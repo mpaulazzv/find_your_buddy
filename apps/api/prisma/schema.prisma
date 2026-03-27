@@ -7,12 +7,50 @@ datasource db {
   provider = "postgresql"
 }
 
+enum PostStatus {
+  AVAILABLE
+  ADOPTED
+}
+
 model User {
   id            Int            @id @default(autoincrement())
   email         String         @unique
+  password      String?
   posts         Post[]
-  phoneNumber   String
+  phoneNumber   String?
+  profileComplete Boolean        @default(false)
   subscriptions Subscription[]
+  authTypes       AuthType[]
+  sessions      Session[]
+  phoneVerified Boolean @default(false)
+  emailVerified DateTime?
+}
+
+model AuthType {
+  id                 Int     @id @default(autoincrement())
+  userId             Int
+  type               String 
+  provider           String  
+  providerAccountId  String  
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           Int      @id @default(autoincrement())
+  sessionToken String   @unique             
+  userId       Int                         
+  expires      DateTime                     
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Department {
@@ -63,18 +101,12 @@ model AgeCategory {
   subscriptions Subscription[]
 }
 
-model Status {
-  id   Int    @id @default(autoincrement())
-  name String  @default("AVAILABLE")
-  posts Post[]
-}
-
 model Post {
   id          Int      @id @default(autoincrement())
   title       String
   description String
   statusId    Int
-  status      Status   @relation(fields: [statusId], references: [id])
+  status      PostStatus @default(AVAILABLE)
   createdAt   DateTime @default(now())
 
   authorId Int
