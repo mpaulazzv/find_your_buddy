@@ -34,15 +34,22 @@ model Species {
   id            Int            @id @default(autoincrement())
   name          String         @unique
   subscriptions Subscription[]
-  pets          Pet[]
+  breeds        Breeds[]
+}
+
+model Breeds {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+  speciesId Int
+  species   Species @relation(fields: [speciesId], references: [id])
+  pets      Pet[]
 }
 
 model Pet {
   id          Int     @id @default(autoincrement())
   name        String
-  speciesId   Int
-  species     Species @relation(fields: [speciesId], references: [id])
-  breed       String?
+  breedId     Int
+  breed       Breeds @relation(fields: [breedId], references: [id])
   gender      String
   posts       Post[]
   age         Int
@@ -56,11 +63,18 @@ model AgeCategory {
   subscriptions Subscription[]
 }
 
+model Status {
+  id   Int    @id @default(autoincrement())
+  name String  @default("AVAILABLE")
+  posts Post[]
+}
+
 model Post {
   id          Int      @id @default(autoincrement())
   title       String
   description String
-  status      String   @default("AVAILABLE")
+  statusId    Int
+  status      Status   @relation(fields: [statusId], references: [id])
   createdAt   DateTime @default(now())
 
   authorId Int
@@ -70,6 +84,15 @@ model Post {
   pet    Pet  @relation(fields: [petId], references: [id])
   cityId Int
   city   City @relation(fields: [cityId], references: [id])
+  images  PostImage[]
+}
+
+model PostImage {
+  id     Int    @id @default(autoincrement())
+  url    String
+  postId Int
+  isMain Boolean @default(false)
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
 }
 
 model Subscription {
