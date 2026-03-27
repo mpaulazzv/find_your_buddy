@@ -6,3 +6,82 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model User {
+  id            Int            @id @default(autoincrement())
+  email         String         @unique
+  posts         Post[]
+  phoneNumber   String
+  subscriptions Subscription[]
+}
+
+model Department {
+  id     Int    @id @default(autoincrement())
+  name   String @unique
+  cities City[]
+}
+
+model City {
+  id            Int            @id @default(autoincrement())
+  departmentId  Int
+  department    Department     @relation(fields: [departmentId], references: [id])
+  name          String         @unique
+  subscriptions Subscription[]
+  posts         Post[]
+}
+
+model Species {
+  id            Int            @id @default(autoincrement())
+  name          String         @unique
+  subscriptions Subscription[]
+  pets          Pet[]
+}
+
+model Pet {
+  id          Int     @id @default(autoincrement())
+  name        String
+  speciesId   Int
+  species     Species @relation(fields: [speciesId], references: [id])
+  breed       String?
+  gender      String
+  posts       Post[]
+  age         Int
+}
+
+model AgeCategory {
+  id        Int    @id @default(autoincrement())
+  name      String @unique
+  minAge    Int
+  maxAge    Int
+  subscriptions Subscription[]
+}
+
+model Post {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  status      String   @default("AVAILABLE")
+  createdAt   DateTime @default(now())
+
+  authorId Int
+  author   User @relation(fields: [authorId], references: [id])
+
+  petId  Int
+  pet    Pet  @relation(fields: [petId], references: [id])
+  cityId Int
+  city   City @relation(fields: [cityId], references: [id])
+}
+
+model Subscription {
+  id          Int     @id @default(autoincrement())
+  userId      Int
+  user        User    @relation(fields: [userId], references: [id])
+  speciesId   Int?
+  species     Species? @relation(fields: [speciesId], references: [id])
+  cityId      Int?
+  city        City?    @relation(fields: [cityId], references: [id])
+  ageCategoryId Int?
+  ageCategory AgeCategory? @relation(fields: [ageCategoryId], references: [id])
+
+  @@unique([userId, speciesId, cityId, ageCategoryId])
+}
